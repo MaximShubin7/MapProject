@@ -1,13 +1,9 @@
 import pandas
 import requests
-import psycopg2.extras
 
 from Classes.Address import AddressCreate
-from DataBase.AddressesTable import AddressesTable
 from Classes.Establishment import EstablishmentCreate
 from DataBase.EstablishmentsTable import EstablishmentsTable
-
-psycopg2.extras.register_uuid()
 
 
 class ParserAddressToCoordinates:
@@ -43,14 +39,10 @@ class ParserEstablishmentsData:
             if "address" in params:
                 parser = ParserAddressToCoordinates()
                 latitude, longitude = parser.get_coordinates(establishment["address"])
-                address = {"address": establishment["address"],
-                           "latitude": latitude,
-                           "longitude": longitude}
-
-                address_create = AddressCreate(**address)
-                address_repository = AddressesTable()
-                address_id = address_repository.add_address(address_create)
-                params["address_id"] = address_id
+                address = AddressCreate(address=establishment["address"],
+                                        latitude=latitude,
+                                        longitude=longitude)
+                params["address"] = address
             if "rating" in params:
                 params["rating"] = round(float(establishment["rating"]), 2)
             if establishment["count_comment"]:

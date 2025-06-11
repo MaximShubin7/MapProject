@@ -10,10 +10,7 @@ def get_sqlalchemy_engine():
 
     return create_engine(
         database_url,
-        pool_size=10,
-        max_overflow=20,
         pool_pre_ping=True,
-        connect_args={
-            "sslmode": "require"
-        }
+        pool_size=10,
+        connect_args={"sslmode": "require"}
     )
