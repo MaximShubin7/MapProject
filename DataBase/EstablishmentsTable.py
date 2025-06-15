@@ -51,7 +51,7 @@ class EstablishmentsTable:
             establishment_id = result.scalar_one()
             return establishment_id
 
-    def get_all_establishments(self, filters: FilterEstablishments) -> Optional[List[EstablishmentAddressResponse]]:
+    def get_filter_establishments(self, filters: Optional[FilterEstablishments] = None) -> Optional[List[EstablishmentAddressResponse]]:
         j = join(
             self.establishments,
             self.addresses,
@@ -66,6 +66,23 @@ class EstablishmentsTable:
             self.addresses.c.latitude,
             self.addresses.c.longitude
         ).select_from(j)
+
+        if filters is None:
+            with self.get_connection() as conn:
+                results = conn.execute(stmt).fetchall()
+                return [
+                    EstablishmentAddressResponse(
+                        establishment_id=row.establishment_id,
+                        name=row.name,
+                        address=AddressResponse(
+                            address_id=row.address_id,
+                            address=row.address,
+                            latitude=row.latitude,
+                            longitude=row.longitude
+                        )
+                    )
+                    for row in results
+                ]
 
         conditions = []
         if filters.name is not None:
@@ -89,7 +106,7 @@ class EstablishmentsTable:
             results = conn.execute(stmt).fetchall()
 
             if not results:
-                return None
+                return []
 
             return [
                 EstablishmentAddressResponse(

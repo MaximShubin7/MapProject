@@ -7,7 +7,7 @@ from DataBase.EstablishmentsTable import EstablishmentsTable
 
 
 class ParserAddressToCoordinates:
-    YANDEX_MAPS_API_KEY = "22955a5e-740a-4850-8379-1439a844b941"
+    YANDEX_MAPS_API_KEY = "45eddf1e-2d4c-4a86-a39c-13c5ffa8bddc"
     BASE_URL = "https://geocode-maps.yandex.ru/1.x"
 
     def get_coordinates(self, address: str) -> tuple[float, float] | None:
@@ -31,7 +31,7 @@ class ParserEstablishmentsData:
     def write_establishments_data(self, path_to_data):
         df = pandas.read_excel(path_to_data)
         result = df.to_dict("records")
-        for establishment in result:
+        for establishment in result[1339:]:
             params = {}
             for key, value in establishment.items():
                 if value:

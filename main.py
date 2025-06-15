@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, status, UploadFile, File
@@ -112,11 +112,11 @@ def create_establishment(establishment: EstablishmentCreate):
 
 
 @app.get("/establishments")
-def get_all_establishments(filters: FilterEstablishments):
+def get_filter_establishments(filters: Optional[FilterEstablishments] = None):
     repository = EstablishmentsTable()
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content=[establishment.model_dump(mode='json') for establishment in repository.get_all_establishments(filters)]
+        content=[establishment.model_dump(mode='json') for establishment in repository.get_filter_establishments(filters)]
     )
 
 
