@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from typing import Optional, List
 from uuid import UUID
 from sqlalchemy import Table, MetaData, select, insert, update, delete, join, and_
+from Levenshtein import distance as levenshtein_distance
 
 from Classes.Address import AddressResponse
 from Classes.FilterEstablishments import FilterEstablishments
@@ -51,7 +52,8 @@ class EstablishmentsTable:
             establishment_id = result.scalar_one()
             return establishment_id
 
-    def get_filter_establishments(self, filters: Optional[FilterEstablishments] = None) -> Optional[List[EstablishmentAddressResponse]]:
+    def get_filter_establishments(self, filters: Optional[FilterEstablishments] = None) -> Optional[
+        List[EstablishmentAddressResponse]]:
         j = join(
             self.establishments,
             self.addresses,
@@ -86,7 +88,39 @@ class EstablishmentsTable:
 
         conditions = []
         if filters.name is not None:
-            conditions.append(self.establishments.c.name.ilike(f"%{filters.name}%"))
+            with self.get_connection() as conn:
+                all_results = conn.execute(stmt).fetchall()
+
+            establishments_with_distance = [
+                (
+                    row,
+                    levenshtein_distance(filters.name.lower(), row.name.lower())
+                )
+                for row in all_results
+            ]
+            filtered_results = [
+                row for row, dist in establishments_with_distance
+                if dist <= 5  # Можно настроить порог
+            ]
+            sorted_results = sorted(
+                filtered_results,
+                key=lambda x: levenshtein_distance(filters.name.lower(), x.name.lower())
+            )
+
+            return [
+                EstablishmentAddressResponse(
+                    establishment_id=row.establishment_id,
+                    name=row.name,
+                    address=AddressResponse(
+                        address_id=row.address_id,
+                        address=row.address,
+                        latitude=row.latitude,
+                        longitude=row.longitude
+                    )
+                )
+                for row in sorted_results
+            ]
+
         if filters.rating is not None:
             conditions.append(self.establishments.c.rating >= filters.rating)
         if filters.latitude is not None:
