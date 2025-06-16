@@ -100,7 +100,7 @@ class EstablishmentsTable:
             ]
             filtered_results = [
                 row for row, dist in establishments_with_distance
-                if dist <= 5  # Можно настроить порог
+                if dist <= 3
             ]
             sorted_results = sorted(
                 filtered_results,
